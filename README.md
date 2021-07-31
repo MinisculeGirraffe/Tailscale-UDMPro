@@ -12,10 +12,8 @@
 - Create macvtap network.conflist for the container in `/mnt/data/podman/cni`
 
 #### Configure Network interfaces
- 
+
 The on-boot script attatched to this repo can be used as an example. Due to the host networking stack not being compatible with Tailscale, routes will have to be configured manually. The container is given a local IP address and any Tailscale IP's or subnet routes can be pointed to the container via `ip route`
-
-
 
 #### Create Tailscale Image
 Build Tailscale for ARM64
