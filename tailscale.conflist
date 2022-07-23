@@ -11,12 +11,12 @@
           "type": "static",
           "addresses": [
             {
-              "address": "10.1.10.2/24",
-              "gateway": "10.1.10.1"
+              "address": "<ADDR>/<CIDR>",
+              "gateway": "<ADDR>"
             },
             {
-                "address": "2600:1700:eec0:7310::2/64",
-                "gateway": "fd62:89a2:fda9:e23::1"
+                "address": "<ADDRv6>/<CIDRv6>",
+                "gateway": "<ADDRv6>"
               }
           ],
           "routes": [

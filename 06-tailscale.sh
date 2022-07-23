@@ -1,10 +1,27 @@
+#!/bin/sh
 
-## configuration variables:
+#configuration variables:
+#The VLAN the tailscale container will be attached to.
 VLAN=0
-IPV4_IP="10.1.10.2"
-IPV4_GW="10.1.10.1/24"
-IPV6_IP="2603:8080:7002:3600::2"
-IPV6_GW="2603:8080:7002:3600::1/64"
+
+#The IPv4 address of the tailscale container.
+IPV4_IP="<ADDR>"
+IPV4_GW="<ADDR>/<CIDR>"
+
+#The IPv6 address of the tailscale container.
+IPV6_IP="<ADDRv6>"
+IPV6_GW="<ADDRv6>/<CIDR>"
+
+#The local routes you want to expose to tailscale
+#Seperate with a "," for multiple routes
+SUBNET_ROUTES="<ADDR>/<CIDR>,<ADDR>/<CIDR>"
+
+#The tailscale ipv4 subnet is static to the CGNAT range
+#https://tailscale.com/kb/1015/100.x-addresses/
+TAILSCALE_NETV4="100.64.0.0/10"
+#The Tailscale IPv6 Subnet range
+#https://tailscale.com/kb/1033/ip-and-dns-addresses/#tailscale-ipv6-local-address-prefix
+TAILSCALE_NETV6="fd7a:115c:a1e0:ab12::/64"
 
 # set VLAN bridge promiscuous
 ip link set br${VLAN} promisc on
@@ -23,20 +40,20 @@ ip link set br${VLAN}.mac up
 ip route add ${IPV4_IP}/32 dev br${VLAN}.mac
 ip -6 route add ${IPV6_IP}/128 dev br${VLAN}.mac
 
-
-
-# Add Tailscale IP Routes via Container
-ip route add 100.64.0.0/10 via ${IPV4_IP} dev br${VLAN}.mac
-# Change, your link local ipv6 is likely different
-ip -6 route add fd7a:115c:a1e0:ab12:4843::/80 via ${IPV6_IP}
+# Add Tailscale IP Routes via Container IP
+ip route add ${TAILSCALE_NETV4} via ${IPV4_IP} dev br${VLAN}.mac
+ip -6 route add ${TAILSCALE_NETV6} via ${IPV6_IP}
 
 #Add routes from other subnet routers
 ip route add 10.2.0.0/16 via ${IPV4_IP}
 ip -6 route add 2600:1f16:116:3b00::/56 via ${IPV6_IP}
-#start container & tailscale 
+
+#Start Container
 docker start tailscaled
+#Enable IPv6 routing on container
 docker exec tailscaled sysctl -w net.ipv6.conf.all.forwarding=1
-docker exec tailscaled tailscale up --hostname=UDM-Pro --accept-routes=true --advertise-routes=10.1.0.0/16,2603:8080:7002:3600::/56
+#Enable the VPN
+docker exec tailscaled tailscale up --hostname=UDM-Pro --accept-routes=true --advertise-routes=${SUBNET_ROUTES}
 
 
 
